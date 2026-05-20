@@ -29,7 +29,7 @@ export default function Sidenav({
         <span className="dept-dot" style={{ background: '#3b82f6' }} />
         Order List
       </button>
-      {userRole === 'Admin' && (
+      {['Admin', 'Manager', 'Sales'].includes(userRole) && (
         <button 
           className={`dept-btn${currentView === 'new-order' ? ' active' : ''}`}
           onClick={() => onSetView('new-order')}
@@ -38,6 +38,14 @@ export default function Sidenav({
           New Order
         </button>
       )}
+      
+      <button 
+        className={`dept-btn${currentView === 'masters' ? ' active' : ''}`}
+        onClick={() => onSetView('masters')}
+      >
+        <span className="dept-dot" style={{ background: '#8b5cf6' }} />
+        Masters
+      </button>
 
       <div className="sidenav-section" style={{ marginTop: 12 }}>Departments</div>
 
@@ -58,7 +66,10 @@ export default function Sidenav({
           <button
             key={dept.id}
             className={`dept-btn${currentFilter === dept.id ? ' active' : ''}`}
-            onClick={() => onFilterDept(dept.id)}
+            onClick={() => {
+              onFilterDept(dept.id);
+              onSetView('flow');
+            }}
           >
             <span className="dept-dot" style={{ background: dept.color }} />
             {dept.label}
@@ -117,6 +128,14 @@ export default function Sidenav({
           >
             <span className="dept-dot" style={{ background: 'var(--accent)' }} />
             User Directory
+          </button>
+          <button 
+            className={`dept-btn${currentView === 'logs' ? ' active' : ''}`}
+            onClick={() => onSetView('logs')}
+            style={{ width: '100%', justifyContent: 'flex-start', marginTop: '8px' }}
+          >
+            <span className="dept-dot" style={{ background: '#f59e0b' }} />
+            System Logs
           </button>
         </div>
       )}

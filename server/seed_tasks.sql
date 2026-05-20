@@ -1,0 +1,16 @@
+INSERT INTO task_masters (dept, name, sub, special, requires_upload, is_mandatory) VALUES
+('Sales', 'Upload PO', 'Customer PO + specs', 'sales', true, true),
+('Sales', 'Confirm Dispatch Date', 'Received from Planning', 'dispatch', false, true),
+('Design', 'Review & Classify', 'Standard / Non-Standard', NULL, false, true),
+('Design', 'Release Documents', 'Panel Layout + Electrical Design + BOM', 'design', true, true),
+('Purchase', 'Receive Shortfall', 'From Stores after BOM check', NULL, false, true),
+('Purchase', 'Procure Materials', 'Raise PO to supplier', NULL, true, true),
+('Stores', 'Stock Check vs BOM', 'Verify availability', NULL, false, true),
+('Stores', 'Material Status', 'Allotted → Acceptance → Accept-complete', NULL, false, true),
+('Stores', 'Inform Purchase', 'Send shortfall list', NULL, false, true),
+('Production', 'Production Plan', 'Per day capacity', NULL, false, true),
+('Production', 'Manufacture', 'Fitter (mechanical) + Wireman (electrical)', NULL, false, true),
+('QC', 'Receive Panel', 'Test & inspect', 'qc', false, true),
+('QC', 'QC Decision', 'Pass → Dispatch | Fail → Rework/Redesign', 'qc', true, true),
+('Dispatch', 'Ready for Dispatch', 'QC cleared panels', NULL, true, true),
+('Accounts', 'Invoice & Dispatch Note', 'Billing & documentation', NULL, true, true);

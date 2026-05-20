@@ -1,10 +1,13 @@
-import { useEffect, useState } from 'react';
-import { LogOut, User, ChevronDown } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { LogOut, User, Search } from 'lucide-react';
 
 export default function Header({ onLogout }) {
   const [time, setTime] = useState(() => new Date().toLocaleTimeString('en-IN'));
   const [orders, setOrders] = useState([]);
   const [selectedOrderId, setSelectedOrderId] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const searchRef = useRef(null);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const token = localStorage.getItem('token');
 
@@ -15,9 +18,40 @@ export default function Header({ onLogout }) {
     
     // Fetch orders for everyone
     fetchOrders();
+
+    const handleSetView = (e) => {
+      if (e.detail && e.detail.orderId !== undefined) {
+        setSelectedOrderId(e.detail.orderId || '');
+      } else if (e.detail && e.detail.orderId === null) {
+        setSelectedOrderId('');
+      }
+    };
+    window.addEventListener('setView', handleSetView);
     
-    return () => clearInterval(id);
+    // Click outside to close dropdown
+    const handleClickOutside = (event) => {
+      if (searchRef.current && !searchRef.current.contains(event.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('setView', handleSetView);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
   }, []);
+
+  // Sync searchQuery with selectedOrderId when it changes externally
+  useEffect(() => {
+    if (selectedOrderId && orders.length > 0) {
+      const order = orders.find(o => o.id == selectedOrderId);
+      if (order) setSearchQuery(order.order_number);
+    } else if (!selectedOrderId) {
+      setSearchQuery('');
+    }
+  }, [selectedOrderId, orders]);
 
   const fetchOrders = async () => {
     if (!token) return;
@@ -34,15 +68,26 @@ export default function Header({ onLogout }) {
     }
   };
 
-  const handleOrderChange = (e) => {
-    const orderId = e.target.value;
+  const handleSelectOrder = (orderId, orderNum) => {
     setSelectedOrderId(orderId);
+    setSearchQuery(orderNum || '');
+    setIsDropdownOpen(false);
+    
     if (orderId) {
       window.dispatchEvent(new CustomEvent('setView', { 
-        detail: { view: 'orders', orderId: parseInt(orderId) } 
+        detail: { view: 'flow', orderId: parseInt(orderId) } 
+      }));
+    } else {
+      window.dispatchEvent(new CustomEvent('setView', { 
+        detail: { view: 'board', orderId: null } 
       }));
     }
   };
+
+  const filteredOrders = orders.filter(o => 
+    (o.order_number || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (o.company_name || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
     <div className="header">
@@ -57,20 +102,51 @@ export default function Header({ onLogout }) {
           <span className={`role-badge role-${user.role?.toLowerCase()}`}>{user.role || 'Viewer'}</span>
         </div>
 
-        <div className="order-selector">
-          <select 
-            value={selectedOrderId} 
-            onChange={handleOrderChange}
-            className="order-dropdown"
-          >
-            <option value="">Select Order...</option>
-            {orders.map(order => (
-              <option key={order.id} value={order.id}>
-                {order.order_number}
-              </option>
-            ))}
-          </select>
-          <ChevronDown size={14} className="dropdown-icon" />
+        <div className="order-selector" ref={searchRef}>
+          <Search size={14} className="search-icon" />
+          <input 
+            type="text"
+            className="order-search-input"
+            placeholder="Search Order..."
+            value={searchQuery}
+            onFocus={() => setIsDropdownOpen(true)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setIsDropdownOpen(true);
+            }}
+          />
+          {selectedOrderId && (
+            <button 
+              className="clear-search" 
+              onClick={(e) => { e.stopPropagation(); handleSelectOrder('', ''); }}
+              title="Clear Selection"
+            >
+              ×
+            </button>
+          )}
+          
+          {isDropdownOpen && (
+            <div className="search-dropdown-menu">
+              <div 
+                className={`search-dropdown-item ${!selectedOrderId ? 'active' : ''}`}
+                onClick={() => handleSelectOrder('', '')}
+              >
+                View All Orders (Board)
+              </div>
+              {filteredOrders.length > 0 ? filteredOrders.map(order => (
+                <div 
+                  key={order.id} 
+                  className={`search-dropdown-item ${selectedOrderId == order.id ? 'active' : ''}`}
+                  onClick={() => handleSelectOrder(order.id, order.order_number)}
+                >
+                  <div style={{ fontWeight: 600 }}>{order.order_number}</div>
+                  {order.company_name && <div style={{ fontSize: '10px', color: '#888' }}>{order.company_name}</div>}
+                </div>
+              )) : (
+                <div className="search-dropdown-item empty">No orders found</div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="clock" style={{ marginRight: '16px' }}>{time}</div>
@@ -87,37 +163,66 @@ export default function Header({ onLogout }) {
           align-items: center;
           margin-right: 16px;
         }
-        .order-dropdown {
+        .order-search-input {
           background: rgba(255, 255, 255, 0.05);
           border: 1px solid rgba(255, 255, 255, 0.1);
           border-radius: 20px;
           color: #eee;
-          padding: 4px 30px 4px 16px;
+          padding: 6px 30px 6px 32px;
           font-size: 12px;
-          appearance: none;
-          cursor: pointer;
-          transition: all 0.2s;
-          min-width: 140px;
-        }
-        .order-dropdown:hover {
-          background: rgba(255, 255, 255, 0.1);
-          border-color: #3b82f6;
-        }
-        .order-dropdown:focus {
+          width: 240px;
           outline: none;
+          transition: all 0.2s;
+        }
+        .order-search-input:focus {
+          background: rgba(255, 255, 255, 0.1);
           border-color: #3b82f6;
           box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
         }
-        .dropdown-icon {
+        .search-icon {
+          position: absolute;
+          left: 12px;
+          color: #888;
+          pointer-events: none;
+        }
+        .clear-search {
           position: absolute;
           right: 12px;
-          pointer-events: none;
+          background: none;
+          border: none;
           color: #888;
+          cursor: pointer;
+          font-size: 16px;
+          line-height: 1;
+          padding: 0;
         }
-        .order-dropdown option {
+        .clear-search:hover { color: #fff; }
+        
+        .search-dropdown-menu {
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 0;
+          width: 100%;
+          max-height: 300px;
+          overflow-y: auto;
           background: #1a1a1a;
-          color: #eee;
+          border: 1px solid #333;
+          border-radius: 8px;
+          box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+          z-index: 1000;
         }
+        .search-dropdown-item {
+          padding: 8px 12px;
+          cursor: pointer;
+          font-size: 12px;
+          border-bottom: 1px solid #222;
+          transition: background 0.15s;
+        }
+        .search-dropdown-item:last-child { border-bottom: none; }
+        .search-dropdown-item:hover { background: #2a2a2a; }
+        .search-dropdown-item.active { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
+        .search-dropdown-item.empty { color: #888; text-align: center; font-style: italic; cursor: default; }
+        .search-dropdown-item.empty:hover { background: transparent; }
       `}} />
     </div>
   );

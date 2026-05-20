@@ -4,17 +4,53 @@ const DOC_TYPES = [
   'PO', 'Quotation', 'BOM', 'Drawing', 'QC Report', 'Dispatch Document', 'Photo'
 ];
 
-export default function DocumentManager({ entityType, entityId, initialDocs = [], onUploadSuccess }) {
+export default function DocumentManager({ entityType, entityId, initialDocs = [], onUploadSuccess, onDocsUpdate }) {
   const [docs, setDocs] = useState(initialDocs);
   const [isUploading, setIsUploading] = useState(false);
   const [selectedType, setSelectedType] = useState(DOC_TYPES[0]);
   const token = localStorage.getItem('token');
 
+  useEffect(() => {
+    // If initialDocs wasn't provided or we want to ensure latest, fetch them
+    const fetchDocs = async () => {
+      try {
+        const res = await fetch(`http://localhost:5000/api/documents/${entityType}/${entityId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setDocs(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch docs', err);
+      }
+    };
+    if (entityId) fetchDocs();
+  }, [entityType, entityId, token]);
+
+  useEffect(() => {
+    if (onDocsUpdate) onDocsUpdate(docs);
+  }, [docs, onDocsUpdate]);
+
   const handleFileChange = async (e) => {
     const files = Array.from(e.target.files);
     if (files.length === 0) return;
+    if (selectedType === 'PO' || selectedType === 'Quotation') {
+      if (files.length > 1) {
+        alert(`${selectedType} can only be a single file.`);
+        e.target.value = '';
+        return;
+      }
+      if (docs.some(d => d.doc_type === selectedType)) {
+        alert(`A ${selectedType} already exists for this order. Please delete it first or choose a different type.`);
+        e.target.value = '';
+        return;
+      }
+    }
+
     if (docs.length + files.length > 20) {
       alert('Maximum 20 files allowed per entity.');
+      e.target.value = '';
       return;
     }
 
@@ -48,6 +84,27 @@ export default function DocumentManager({ entityType, entityId, initialDocs = []
     } finally {
       setIsUploading(false);
       e.target.value = ''; // Reset input
+    }
+  };
+
+  const handleDeleteDoc = async (docId) => {
+    if (!window.confirm('Are you sure you want to delete this document?')) return;
+    try {
+      const res = await fetch(`http://localhost:5000/api/documents/${docId}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const newDocs = docs.filter(d => d.id !== docId);
+        setDocs(newDocs);
+        if (onUploadSuccess) onUploadSuccess(newDocs);
+      } else {
+        const err = await res.json();
+        alert(err.error || 'Failed to delete document');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('Network error during deletion');
     }
   };
 
@@ -88,14 +145,21 @@ export default function DocumentManager({ entityType, entityId, initialDocs = []
               </div>
               <div className="doc-meta">
                 <span>{(doc.file_size / 1024).toFixed(1)} KB</span>
-                <a 
-                  href={`http://localhost:5000/${doc.file_path.replace(/\\/g, '/')}`} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="doc-link"
-                >
-                  View
-                </a>
+                  <a 
+                    href={`http://localhost:5000/uploads/${doc.file_path.split(/[\/\\]/).pop()}?token=${token}`}
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="doc-link"
+                  >
+                    View
+                  </a>
+                  <button 
+                    onClick={() => handleDeleteDoc(doc.id)} 
+                    style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', marginLeft: '8px', fontSize: '14px' }}
+                    title="Delete document"
+                  >
+                    ✕
+                  </button>
               </div>
             </div>
           ))

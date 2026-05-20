@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planning Module — Vyom ERP Engine</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0e0f11;
+    --bg2: #14161a;
+    --bg3: #1c1f26;
+    --bg4: #242830;
+    --border: #2a2f3a;
+    --border2: #363d4a;
+    --text: #e8eaf0;
+    --text2: #8a93a8;
+    --text3: #5a6070;
+    --accent: #f59e0b;
+    --accent2: #d97706;
+    --green: #22c55e;
+    --green-dim: #14532d;
+    --blue: #3b82f6;
+    --blue-dim: #1e3a5f;
+    --red: #ef4444;
+    --red-dim: #450a0a;
+    --orange: #f97316;
+    --orange-dim: #431407;
+    --purple: #a78bfa;
+    --purple-dim: #2e1065;
+    --teal: #2dd4bf;
+    --teal-dim: #042f2e;
+    --gray-dim: #1e2028;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font: 'IBM Plex Sans', sans-serif;
+    --radius: 6px;
+    --radius-lg: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 16px; }
+  .logo {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+  .header-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    border-left: 1px solid var(--border2);
+    padding-left: 16px;
+  }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .order-chip {
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--accent);
+  }
+  .clock {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text3);
+  }
+
+  /* ── Layout ── */
+  .app { display: flex; height: calc(100vh - 56px); overflow: hidden; }
+
+  /* ── Left nav ── */
+  .sidenav {
+    width: 200px;
+    min-width: 200px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .sidenav-section {
+    padding: 16px 12px 8px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+  }
+  .dept-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    width: 100%;
+    text-align: left;
+    color: var(--text2);
+    font-family: var(--font);
+    font-size: 12px;
+    border-radius: 4px;
+    margin: 1px 6px;
+    width: calc(100% - 12px);
+    transition: all 0.15s;
+    position: relative;
+  }
+  .dept-btn:hover { background: var(--bg3); color: var(--text); }
+  .dept-btn.active { background: var(--bg4); color: var(--text); }
+  .dept-btn.active::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 4px; bottom: 4px;
+    width: 2px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+  .dept-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .dept-count {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--text3);
+  }
+
+  /* ── Main ── */
+  .main { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+  /* ── Top stats ── */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 16px;
+  }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .stat-value {
+    font-family: var(--font-mono);
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .stat-sub { font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+  /* ── Flow area ── */
+  .flow-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .flow-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+  }
+  .view-toggle { display: flex; gap: 4px; }
+  .vbtn {
+    padding: 4px 10px;
+    border: 1px solid var(--border2);
+    background: none;
+    color: var(--text2);
+    border-radius: var(--radius);
+    font-size: 11px;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .vbtn.active { background: var(--bg4); color: var(--text); border-color: var(--accent); }
+
+  /* ── Lane table ── */
+  .lanes { display: flex; flex-direction: column; gap: 3px; }
+  .lane {
+    display: flex;
+    align-items: stretch;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    min-height: 74px;
+    transition: border-color 0.2s;
+  }
+  .lane:hover { border-color: var(--border2); }
+  .lane.active-lane { border-color: var(--accent); }
+
+  .lane-label {
+    width: 120px;
+    min-width: 120px;
+    background: var(--bg2);
+    border-right: 1px solid var(--border);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+  }
+  .lane-name {
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--text);
+  }
+  .lane-sub { font-size: 10px; color: var(--text3); }
+
+  .lane-steps {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 8px 12px;
+    overflow-x: auto;
+    background: var(--bg);
+  }
+
+  /* ── Step cards ── */
+  .step {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--bg2);
+    min-width: 148px;
+    max-width: 148px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .step:hover { border-color: var(--border2); background: var(--bg3); transform: translateY(-1px); }
+  .step.status-pending { border-color: var(--border); opacity: 0.6; }
+  .step.status-inprogress { border-color: var(--blue); background: #0f1929; }
+  .step.status-done { border-color: var(--green); background: #0a1a0f; }
+  .step.status-blocked { border-color: var(--red); background: #1a0a0a; }
+  .step.status-review { border-color: var(--orange); background: #1a0e0a; }
+
+  .step-num {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text3);
+    letter-spacing: 1px;
+  }
+  .step-name {
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--text);
+    line-height: 1.3;
+  }
+  .step-sub { font-size: 10px; color: var(--text2); line-height: 1.3; }
+  .step-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: 500;
+    margin-top: 4px;
+    width: fit-content;
+    letter-spacing: 0.5px;
+  }
+  .badge-pending { background: var(--bg4); color: var(--text3); }
+  .badge-inprogress { background: var(--blue-dim); color: var(--blue); }
+  .badge-done { background: var(--green-dim); color: var(--green); }
+  .badge-blocked { background: var(--red-dim); color: var(--red); }
+  .badge-review { background: var(--orange-dim); color: var(--orange); }
+
+  .step-dot {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 7px; height: 7px;
+    border-radius: 50%;
+  }
+  .dot-pending { background: var(--text3); }
+  .dot-inprogress { background: var(--blue); box-shadow: 0 0 6px var(--blue); }
+  .dot-done { background: var(--green); }
+  .dot-blocked { background: var(--red); box-shadow: 0 0 6px var(--red); }
+  .dot-review { background: var(--orange); box-shadow: 0 0 6px var(--orange); }
+
+  /* connector arrow between steps */
+  .step-arrow {
+    color: var(--text3);
+    font-size: 14px;
+    padding: 0 4px;
+    flex-shrink: 0;
+    user-select: none;
+  }
+  .step-arrow.dashed { opacity: 0.35; letter-spacing: -2px; }
+
+  /* ── BOM status strip ── */
+  .bom-strip {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px 20px;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+  }
+  .bom-label {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+    min-width: 80px;
+  }
+  .bom-states {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .bom-state {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    border: 1px solid var(--border2);
+    color: var(--text3);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bom-state.active-state {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(245,158,11,0.08);
+  }
+  .bom-arrow { color: var(--text3); font-size: 12px; }
+
+  /* ── Right panel ── */
+  .right-panel {
+    width: 280px;
+    min-width: 280px;
+    background: var(--bg2);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .panel-section {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .panel-sec-title {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: var(--text3);
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+
+  /* detail card */
+  .detail-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  .detail-card h4 { font-size: 12px; font-weight: 500; margin-bottom: 6px; color: var(--text); }
+  .detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-key { color: var(--text3); }
+  .detail-val { color: var(--text); font-family: var(--font-mono); font-size: 10px; }
+
+  /* update form */
+  .update-form { display: flex; flex-direction: column; gap: 8px; }
+  .form-label { font-size: 10px; color: var(--text3); margin-bottom: 2px; }
+  .form-select, .form-input, .form-textarea {
+    width: 100%;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius);
+    padding: 6px 10px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 12px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-select:focus, .form-input:focus, .form-textarea:focus {
+    border-color: var(--accent);
+  }
+  .form-textarea { resize: vertical; min-height: 60px; }
+  .btn-update {
+    padding: 8px 16px;
+    background: var(--accent);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    font-family: var(--font);
+    font-weight: 600;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
+    width: 100%;
+  }
+  .btn-update:hover { background: var(--accent2); }
+
+  /* activity log */
+  .log-entry {
+    display: flex;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+  }
+  .log-entry:last-child { border-bottom: none; }
+  .log-time {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: var(--text3);
+    min-width: 42px;
+    padding-top: 1px;
+  }
+  .log-text { color: var(--text2); line-height: 1.4; }
+  .log-dept {
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* visibility tag */
+  .vis-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    background: var(--bg4);
+    border: 1px solid var(--border2);
+    border-radius: 20px;
+    font-size: 10px;
+    color: var(--text2);
+    margin: 2px;
+  }
+  .vis-dot { width: 5px; height: 5px; border-radius: 50%; }
+
+  /* modal overlay */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  .modal-overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border2);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    width: 420px;
+    max-width: 95vw;
+    transform: translateY(12px);
+    transition: transform 0.2s;
+  }
+  .modal-overlay.open .modal { transform: translateY(0); }
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .modal-title { font-size: 15px; font-weight: 600; }
+  .modal-sub { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .modal-close {
+    background: none; border: none; color: var(--text3);
+    cursor: pointer; font-size: 18px; padding: 0; line-height: 1;
+  }
+  .modal-close:hover { color: var(--text); }
+  .modal-body { display: flex; flex-direction: column; gap: 10px; }
+  .modal-field label { display: block; font-size: 10px; color: var(--text3); margin-bottom: 4px; }
+  .modal-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .btn-cancel {
+    flex: 1; padding: 8px; background: var(--bg4); border: 1px solid var(--border2);
+    border-radius: var(--radius); color: var(--text2); cursor: pointer;
+    font-family: var(--font); font-size: 12px;
+  }
+  .btn-save {
+    flex: 1; padding: 8px; background: var(--accent); border: none;
+    border-radius: var(--radius); color: #000; cursor: pointer;
+    font-family: var(--font); font-weight: 600; font-size: 12px;
+  }
+
+  /* QC fail options */
+  .qc-options { display: flex; gap: 8px; margin-top: 4px; }
+  .qc-opt {
+    flex: 1; padding: 8px; border: 1px solid var(--border2); border-radius: var(--radius);
+    background: var(--bg4); color: var(--text2); cursor: pointer; font-size: 11px;
+    text-align: center; transition: all 0.15s; font-family: var(--font);
+  }
+  .qc-opt:hover { border-color: var(--red); color: var(--red); }
+  .qc-opt.selected { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+  /* pulse animation for in-progress */
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+  .dot-inprogress { animation: pulse 2s ease-in-out infinite; }
+
+  /* progress bar */
+  .prog-bar { height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 6px; }
+  .prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.4s; }
+
+  .tag-standard { color: var(--green); font-family: var(--font-mono); font-size: 10px; }
+  .tag-nonstandard { color: var(--orange); font-family: var(--font-mono); font-size: 10px; }
+
+  .divider { height: 1px; background: var(--border); margin: 4px 0; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">Vyom ERP Engine</div>
+    <div class="header-title">Planning Module — Control Panel Manufacturing</div>
+  </div>
+  <div class="header-right">
+    <div class="order-chip" id="orderChip">ORD-2026-001</div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</div>
+
+<div class="app">
+
+  <!-- Sidenav -->
+  <div class="sidenav">
+    <div class="sidenav-section">Departments</div>
+    <button class="dept-btn active" onclick="filterDept('all')">
+      <span class="dept-dot" style="background:var(--accent)"></span>
+      All Departments
+    </button>
+    <button class="dept-btn" onclick="filterDept('Sales')">
+      <span class="dept-dot" style="background:var(--teal)"></span>
+      Sales
+      <span class="dept-count" id="cnt-Sales">—</span>
+    </button>
+    <button class="dept-btn" onclick="filterDept('Design')">
+      <span class="dept-dot" style="background:var(--purple)"></span>
+      Design
+      <span class="dept-count" id="cnt-Design">—</span>
+    </button>
+    <button class="dept-btn" onclick="filterDept('Purchase')">
+      <span class="dept-dot" style="background:var(--orange)"></span>
+      Purchase
+      <span class="dept-count" id="cnt-Purchase">—</span>
+    </button>
+    <button class="dept-btn" onclick="filterDept('Stores')">
+      <span class="dept-dot" style="background:var(--green)"></span>
+      Stores
+      <span class="dept-count" id="cnt-Stores">—</span>
+    </button>
+    <button class="dept-btn" onclick="filterDept('Production')">
+      <span class="dept-dot" style="background:var(--red)"></span>
+      Production
+      <span class="dept-count" id="cnt-Production">—</span>
+    </button>
+    <button class="dept-btn" onclick="filterDept('QC')">
+      <span class="dept-dot" style="background:var(--blue)"></span>
+      QC
+      <span class="dept-count" id="cnt-QC">—</span>
+    </button>
+    <button class="dept-btn" onclick="filterDept('Dispatch')">
+      <span class="dept-dot" style="background:var(--text2)"></span>
+      Dispatch
+      <span class="dept-count" id="cnt-Dispatch">—</span>
+    </button>
+    <button class="dept-btn" onclick="filterDept('Accounts')">
+      <span class="dept-dot" style="background:var(--text2)"></span>
+      Accounts
+      <span class="dept-count" id="cnt-Accounts">—</span>
+    </button>
+
+    <div class="sidenav-section" style="margin-top:8px">BOM Status</div>
+    <div style="padding:0 12px 12px">
+      <div class="bom-state" id="bs-stockcheck" onclick="setBomState('Stock Check')" style="margin-bottom:4px;display:block">① Stock Check</div>
+      <div class="bom-state" id="bs-allotted" onclick="setBomState('Material Allotted')" style="margin-bottom:4px;display:block">② Material Allotted</div>
+      <div class="bom-state" id="bs-acceptance" onclick="setBomState('Acceptance')" style="margin-bottom:4px;display:block">③ Acceptance</div>
+      <div class="bom-state active-state" id="bs-complete" onclick="setBomState('Accept-Complete')" style="margin-bottom:4px;display:block">④ Accept-Complete</div>
+    </div>
+
+    <div class="sidenav-section">Design Type</div>
+    <div style="padding:0 12px 12px">
+      <div id="designType" class="tag-standard">◆ STANDARD</div>
+      <div style="margin-top:6px; display:flex; gap:6px;">
+        <button onclick="setDesignType('Standard')" class="vbtn" style="flex:1;font-size:10px">Standard</button>
+        <button onclick="setDesignType('Non-Standard')" class="vbtn" style="flex:1;font-size:10px">Non-Std</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+
+    <!-- Stats -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-label">Order Status</div>
+        <div class="stat-value" id="statStatus" style="color:var(--blue);font-size:14px;margin-top:2px">IN PROGRESS</div>
+        <div class="stat-sub" id="statOrderNo">ORD-2026-001</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Steps Done</div>
+        <div class="stat-value" id="statDone" style="color:var(--green)">0</div>
+        <div class="stat-sub">of <span id="statTotal">0</span> steps</div>
+        <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">In Progress</div>
+        <div class="stat-value" id="statIP" style="color:var(--blue)">0</div>
+        <div class="stat-sub">active steps</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Blocked</div>
+        <div class="stat-value" id="statBlocked" style="color:var(--red)">0</div>
+        <div class="stat-sub">need attention</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Dispatch Date</div>
+        <div class="stat-value" id="statDispatch" style="color:var(--accent);font-size:14px;margin-top:2px">—</div>
+        <div class="stat-sub">confirmed by Planning</div>
+      </div>
+    </div>
+
+    <!-- Flow header -->
+    <div class="flow-header">
+      <div class="flow-title">Process Flow — Click any step to update status</div>
+      <div class="view-toggle">
+        <button class="vbtn active" onclick="setView('flow')">Flow</button>
+        <button class="vbtn" onclick="setView('table')">Table</button>
+      </div>
+    </div>
+
+    <!-- Lanes -->
+    <div id="lanesView" class="lanes"></div>
+
+    <!-- Table view -->
+    <div id="tableView" style="display:none">
+      <table id="stepTable" style="width:100%;border-collapse:collapse;font-size:12px">
+        <thead>
+          <tr style="border-bottom:1px solid var(--border2)">
+            <th style="text-align:left;padding:8px 12px;color:var(--text3);font-weight:500;font-family:var(--font-mono);font-size:10px">#</th>
+            <th style="text-align:left;padding:8px 12px;color:var(--text3);font-weight:500;font-family:var(--font-mono);font-size:10px">DEPT</th>
+            <th style="text-align:left;padding:8px 12px;color:var(--text3);font-weight:500;font-family:var(--font-mono);font-size:10px">STEP</th>
+            <th style="text-align:left;padding:8px 12px;color:var(--text3);font-weight:500;font-family:var(--font-mono);font-size:10px">STATUS</th>
+            <th style="text-align:left;padding:8px 12px;color:var(--text3);font-weight:500;font-family:var(--font-mono);font-size:10px">NOTES</th>
+            <th style="text-align:left;padding:8px 12px;color:var(--text3);font-weight:500;font-family:var(--font-mono);font-size:10px">UPDATED</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Right panel -->
+  <div class="right-panel">
+    <div class="panel-section">
+      <div class="panel-sec-title">Selected Step</div>
+      <div id="detailArea">
+        <div style="color:var(--text3);font-size:11px;padding:8px 0">Click any step in the flow to update its status.</div>
+      </div>
+    </div>
+
+    <div class="panel-section">
+      <div class="panel-sec-title">Visibility</div>
+      <div style="line-height:1.8">
+        <div class="vis-tag"><span class="vis-dot" style="background:var(--blue)"></span>Sales sees Production plan</div>
+        <div class="vis-tag"><span class="vis-dot" style="background:var(--blue)"></span>QC sees arrival schedule</div>
+        <div class="vis-tag"><span class="vis-dot" style="background:var(--blue)"></span>Dispatch sees QC clearance</div>
+        <div class="vis-tag"><span class="vis-dot" style="background:var(--teal)"></span>Design releases BOM → Purchase &amp; Stores</div>
+        <div class="vis-tag"><span class="vis-dot" style="background:var(--green)"></span>Stores shortfall → Purchase</div>
+      </div>
+    </div>
+
+    <div class="panel-section" style="flex:1">
+      <div class="panel-sec-title">Activity Log</div>
+      <div id="activityLog" style="max-height:320px;overflow-y:auto"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle">Update Step</div>
+        <div class="modal-sub" id="modalSub">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-field">
+        <label>Status</label>
+        <select class="form-select" id="modalStatus">
+          <option value="pending">Pending</option>
+          <option value="inprogress">In Progress</option>
+          <option value="review">Under Review</option>
+          <option value="done">Done</option>
+          <option value="blocked">Blocked</option>
+        </select>
+      </div>
+
+      <!-- QC special fail options -->
+      <div id="qcFailArea" style="display:none">
+        <label style="font-size:10px;color:var(--text3);display:block;margin-bottom:6px">If QC Fail — return to:</label>
+        <div class="qc-options">
+          <div class="qc-opt" id="qcProd" onclick="selectQcFail('production')">↩ Production<br><span style="font-size:9px;opacity:0.7">Rework</span></div>
+          <div class="qc-opt" id="qcDesign" onclick="selectQcFail('design')">↩ Design<br><span style="font-size:9px;opacity:0.7">Re-check</span></div>
+        </div>
+      </div>
+
+      <!-- Design release fields (shown for Design step) -->
+      <div id="designFields" style="display:none">
+        <div style="background:var(--bg4);border:1px solid var(--border2);border-radius:var(--radius);padding:10px;font-size:11px;color:var(--text2)">
+          <div style="font-weight:500;color:var(--text);margin-bottom:6px">Simultaneous Release Checklist</div>
+          <label style="display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer">
+            <input type="checkbox" id="chkPanelLayout"> Panel Layout (for Fitter)
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer">
+            <input type="checkbox" id="chkElectrical"> Electrical Design (for Wireman)
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer">
+            <input type="checkbox" id="chkBOM"> BOM Released to Purchase &amp; Stores
+          </label>
+        </div>
+      </div>
+
+      <!-- Dispatch date field (shown for Sales) -->
+      <div id="dispatchField" style="display:none">
+        <div class="modal-field">
+          <label>Confirmed Dispatch Date</label>
+          <input type="date" class="form-input" id="modalDispatchDate">
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label>Notes / Remarks</label>
+        <textarea class="form-textarea" id="modalNotes" placeholder="Add notes…"></textarea>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+        <button class="btn-save" onclick="saveStep()">Update Status</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ──
+const DEPTS = [
+  { id:'Sales',      color:'var(--teal)',   label:'Sales',      sub:'Customer interface' },
+  { id:'Design',     color:'var(--purple)', label:'Design',     sub:'Engineering' },
+  { id:'Purchase',   color:'var(--orange)', label:'Purchase',   sub:'Procurement' },
+  { id:'Stores',     color:'var(--green)',  label:'Stores',     sub:'Stock & Issue' },
+  { id:'Production', color:'var(--red)',    label:'Production', sub:'Manufacturing' },
+  { id:'QC',         color:'var(--blue)',   label:'QC',         sub:'Quality Control' },
+  { id:'Dispatch',   color:'var(--text2)',  label:'Dispatch',   sub:'Logistics' },
+  { id:'Accounts',   color:'var(--text2)',  label:'Accounts',   sub:'Billing' },
+];
+
+const STEPS = [
+  // Sales
+  { id:'s1', dept:'Sales', name:'Upload PO', sub:'Customer PO + specs', status:'done', notes:'', updated:'', special:'sales' },
+  { id:'s2', dept:'Sales', name:'Confirm Dispatch Date', sub:'Received from Planning', status:'pending', notes:'', updated:'', special:'dispatch' },
+  // Design
+  { id:'d1', dept:'Design', name:'Review & Classify', sub:'Standard / Non-Standard', status:'done', notes:'Classified as Standard', updated:'' },
+  { id:'d2', dept:'Design', name:'Release Documents', sub:'Panel Layout + Electrical Design + BOM', status:'inprogress', notes:'', updated:'', special:'design' },
+  // Purchase
+  { id:'p1', dept:'Purchase', name:'Receive Shortfall', sub:'From Stores after BOM check', status:'pending', notes:'', updated:'' },
+  { id:'p2', dept:'Purchase', name:'Procure Materials', sub:'Raise PO to supplier', status:'pending', notes:'', updated:'' },
+  // Stores
+  { id:'st1', dept:'Stores', name:'Stock Check vs BOM', sub:'Verify availability', status:'inprogress', notes:'', updated:'' },
+  { id:'st2', dept:'Stores', name:'Material Status', sub:'Allotted → Acceptance → Accept-complete', status:'pending', notes:'', updated:'' },
+  { id:'st3', dept:'Stores', name:'Inform Purchase', sub:'Send shortfall list', status:'pending', notes:'', updated:'' },
+  // Production
+  { id:'pr1', dept:'Production', name:'Production Plan', sub:'Per day capacity', status:'pending', notes:'', updated:'' },
+  { id:'pr2', dept:'Production', name:'Manufacture', sub:'Fitter (mechanical) + Wireman (electrical)', status:'pending', notes:'', updated:'' },
+  // QC
+  { id:'q1', dept:'QC', name:'Receive Panel', sub:'Test & inspect', status:'pending', notes:'', updated:'', special:'qc' },
+  { id:'q2', dept:'QC', name:'QC Decision', sub:'Pass → Dispatch | Fail → Rework/Redesign', status:'pending', notes:'', updated:'', special:'qc' },
+  // Dispatch
+  { id:'di1', dept:'Dispatch', name:'Ready for Dispatch', sub:'QC cleared panels', status:'pending', notes:'', updated:'' },
+  // Accounts
+  { id:'ac1', dept:'Accounts', name:'Invoice & Dispatch Note', sub:'Billing & documentation', status:'pending', notes:'', updated:'' },
+];
+
+let selectedStep = null;
+let currentView = 'flow';
+let currentFilter = 'all';
+let qcFailTarget = null;
+let activityLog = [
+  { time: now(), dept:'Sales', text:'PO uploaded — Customer specs received' },
+  { time: now(), dept:'Design', text:'Panel classified as Standard' },
+  { time: now(), dept:'Design', text:'Electrical Design in progress' },
+  { time: now(), dept:'Stores', text:'BOM received — stock check initiated' },
+];
+
+function now() {
+  return new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+
+// ── Clock ──
+setInterval(() => {
+  document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-IN');
+}, 1000);
+document.getElementById('clock').textContent = new Date().toLocaleTimeString('en-IN');
+
+// ── Render ──
+function render() {
+  updateStats();
+  updateDeptCounts();
+  renderLanes();
+  renderTable();
+  renderLog();
+}
+
+function updateStats() {
+  const steps = STEPS.filter(s => currentFilter === 'all' || s.dept === currentFilter);
+  const done = steps.filter(s=>s.status==='done').length;
+  const ip = steps.filter(s=>s.status==='inprogress').length;
+  const blocked = steps.filter(s=>s.status==='blocked').length;
+  const total = steps.length;
+  document.getElementById('statDone').textContent = done;
+  document.getElementById('statTotal').textContent = total;
+  document.getElementById('statIP').textContent = ip;
+  document.getElementById('statBlocked').textContent = blocked;
+  document.getElementById('progFill').style.width = total ? Math.round(done/total*100)+'%' : '0%';
+  const dispStep = STEPS.find(s=>s.id==='s2');
+  document.getElementById('statDispatch').textContent = dispStep && dispStep.dispatchDate ? dispStep.dispatchDate : '—';
+}
+
+function updateDeptCounts() {
+  DEPTS.forEach(d => {
+    const done = STEPS.filter(s=>s.dept===d.id && s.status==='done').length;
+    const total = STEPS.filter(s=>s.dept===d.id).length;
+    const el = document.getElementById('cnt-'+d.id);
+    if(el) el.textContent = done+'/'+total;
+  });
+}
+
+function statusBadge(status) {
+  const map = {
+    pending:    ['badge-pending','PENDING'],
+    inprogress: ['badge-inprogress','IN PROGRESS'],
+    done:       ['badge-done','DONE'],
+    blocked:    ['badge-blocked','BLOCKED'],
+    review:     ['badge-review','REVIEW'],
+  };
+  const [cls,label] = map[status]||map.pending;
+  return `<span class="step-status-badge ${cls}">${label}</span>`;
+}
+
+function dotClass(status) {
+  return 'dot-'+status;
+}
+
+function renderLanes() {
+  const container = document.getElementById('lanesView');
+  container.innerHTML = '';
+  const depts = currentFilter === 'all' ? DEPTS : DEPTS.filter(d=>d.id===currentFilter);
+  depts.forEach(dept => {
+    const steps = STEPS.filter(s=>s.dept===dept.id);
+    const hasActive = steps.some(s=>s.status==='inprogress');
+    const hasBlocked = steps.some(s=>s.status==='blocked');
+    const laneClass = hasBlocked ? 'lane active-lane' : 'lane';
+
+    const stepsHtml = steps.map((step,i) => {
+      const arrow = i < steps.length-1 ? `<div class="step-arrow">›</div>` : '';
+      return `
+        <div class="step status-${step.status}" onclick="openModal('${step.id}')">
+          <span class="step-dot ${dotClass(step.status)}"></span>
+          <div class="step-num">${dept.id.toUpperCase().slice(0,3)}-${String(i+1).padStart(2,'0')}</div>
+          <div class="step-name">${step.name}</div>
+          <div class="step-sub">${step.sub}</div>
+          ${statusBadge(step.status)}
+          ${step.notes ? `<div style="font-size:9px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${step.notes}</div>` : ''}
+        </div>${arrow}`;
+    }).join('');
+
+    container.innerHTML += `
+      <div class="${laneClass}">
+        <div class="lane-label">
+          <div style="width:3px;height:20px;background:${dept.color};border-radius:2px;margin-bottom:6px"></div>
+          <div class="lane-name">${dept.label}</div>
+          <div class="lane-sub">${dept.sub}</div>
+        </div>
+        <div class="lane-steps">${stepsHtml}</div>
+      </div>`;
+  });
+}
+
+function renderTable() {
+  const body = document.getElementById('tableBody');
+  const steps = currentFilter === 'all' ? STEPS : STEPS.filter(s=>s.dept===currentFilter);
+  body.innerHTML = steps.map((s,i) => {
+    const badge = statusBadge(s.status);
+    const dept = DEPTS.find(d=>d.id===s.dept);
+    return `<tr style="border-bottom:1px solid var(--border);cursor:pointer" onclick="openModal('${s.id}')" onmouseover="this.style.background='var(--bg2)'" onmouseout="this.style.background=''">
+      <td style="padding:8px 12px;color:var(--text3);font-family:var(--font-mono);font-size:10px">${i+1}</td>
+      <td style="padding:8px 12px"><span style="color:${dept?dept.color:'var(--text2)'};font-weight:500">${s.dept}</span></td>
+      <td style="padding:8px 12px"><div style="font-weight:500">${s.name}</div><div style="font-size:10px;color:var(--text3)">${s.sub}</div></td>
+      <td style="padding:8px 12px">${badge}</td>
+      <td style="padding:8px 12px;color:var(--text3);font-size:11px">${s.notes||'—'}</td>
+      <td style="padding:8px 12px;color:var(--text3);font-family:var(--font-mono);font-size:10px">${s.updated||'—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+function renderLog() {
+  const el = document.getElementById('activityLog');
+  el.innerHTML = [...activityLog].reverse().slice(0,20).map(e=>`
+    <div class="log-entry">
+      <div class="log-time">${e.time}</div>
+      <div class="log-text"><span class="log-dept">[${e.dept}]</span> ${e.text}</div>
+    </div>`).join('');
+}
+
+// ── Modal ──
+function openModal(stepId) {
+  const step = STEPS.find(s=>s.id===stepId);
+  if(!step) return;
+  selectedStep = step;
+  qcFailTarget = null;
+
+  document.getElementById('modalTitle').textContent = step.name;
+  document.getElementById('modalSub').textContent = step.dept + ' — ' + step.sub;
+  document.getElementById('modalStatus').value = step.status;
+  document.getElementById('modalNotes').value = step.notes || '';
+
+  // Special fields
+  document.getElementById('qcFailArea').style.display = step.special==='qc' ? 'block' : 'none';
+  document.getElementById('designFields').style.display = step.special==='design' ? 'block' : 'none';
+  document.getElementById('dispatchField').style.display = step.special==='dispatch' ? 'block' : 'none';
+
+  if(step.dispatchDate) document.getElementById('modalDispatchDate').value = step.dispatchDate;
+
+  // QC buttons reset
+  document.getElementById('qcProd').classList.remove('selected');
+  document.getElementById('qcDesign').classList.remove('selected');
+
+  document.getElementById('modalOverlay').classList.add('open');
+
+  // Detail panel
+  const dept = DEPTS.find(d=>d.id===step.dept);
+  document.getElementById('detailArea').innerHTML = `
+    <div class="detail-card">
+      <h4>${step.name}</h4>
+      <div class="detail-row"><span class="detail-key">Department</span><span class="detail-val" style="color:${dept?dept.color:'inherit'}">${step.dept}</span></div>
+      <div class="detail-row"><span class="detail-key">Status</span><span class="detail-val">${step.status.toUpperCase()}</span></div>
+      <div class="detail-row"><span class="detail-key">Last updated</span><span class="detail-val">${step.updated||'—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Notes</span><span class="detail-val">${step.notes||'—'}</span></div>
+    </div>`;
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+  selectedStep = null;
+}
+
+function closeModalOutside(e) {
+  if(e.target.id==='modalOverlay') closeModal();
+}
+
+function selectQcFail(target) {
+  qcFailTarget = target;
+  document.getElementById('qcProd').classList.toggle('selected', target==='production');
+  document.getElementById('qcDesign').classList.toggle('selected', target==='design');
+}
+
+function saveStep() {
+  if(!selectedStep) return;
+  const newStatus = document.getElementById('modalStatus').value;
+  const notes = document.getElementById('modalNotes').value;
+  const t = now();
+
+  selectedStep.status = newStatus;
+  selectedStep.notes = notes;
+  selectedStep.updated = t;
+
+  // Save dispatch date
+  if(selectedStep.special==='dispatch') {
+    const dd = document.getElementById('modalDispatchDate').value;
+    if(dd) selectedStep.dispatchDate = dd;
+  }
+
+  // QC fail routing
+  if(selectedStep.special==='qc' && newStatus==='blocked' && qcFailTarget) {
+    const routeText = qcFailTarget==='production' ? 'QC FAIL → returned to Production for rework' : 'QC FAIL → returned to Design for re-check';
+    activityLog.push({ time:t, dept:'QC', text: routeText });
+    if(qcFailTarget==='production') {
+      const pr = STEPS.find(s=>s.id==='pr2');
+      if(pr) { pr.status='inprogress'; pr.notes='Returned from QC — rework required'; pr.updated=t; }
+    } else {
+      const dr = STEPS.find(s=>s.id==='d2');
+      if(dr) { dr.status='review'; dr.notes='Returned from QC — design re-check needed'; dr.updated=t; }
+    }
+  }
+
+  activityLog.push({ time:t, dept:selectedStep.dept, text:`"${selectedStep.name}" → ${newStatus.toUpperCase()}${notes?' — '+notes:''}` });
+
+  closeModal();
+  render();
+}
+
+// ── BOM state ──
+const bomIds = { 'Stock Check':'bs-stockcheck','Material Allotted':'bs-allotted','Acceptance':'bs-acceptance','Accept-Complete':'bs-complete' };
+function setBomState(state) {
+  Object.values(bomIds).forEach(id => document.getElementById(id)?.classList.remove('active-state'));
+  if(bomIds[state]) document.getElementById(bomIds[state]).classList.add('active-state');
+  activityLog.push({ time:now(), dept:'Stores', text:`BOM status updated → ${state}` });
+  renderLog();
+}
+
+// ── Design type ──
+function setDesignType(type) {
+  const el = document.getElementById('designType');
+  if(type==='Standard') {
+    el.textContent='◆ STANDARD'; el.className='tag-standard';
+  } else {
+    el.textContent='◆ NON-STANDARD'; el.className='tag-nonstandard';
+  }
+  activityLog.push({ time:now(), dept:'Design', text:`Design classified as ${type}` });
+  renderLog();
+}
+
+// ── View toggle ──
+function setView(v) {
+  currentView = v;
+  document.getElementById('lanesView').style.display = v==='flow' ? '' : 'none';
+  document.getElementById('tableView').style.display = v==='table' ? '' : 'none';
+  document.querySelectorAll('.view-toggle .vbtn').forEach((b,i)=>b.classList.toggle('active',(i===0&&v==='flow')||(i===1&&v==='table')));
+}
+
+// ── Dept filter ──
+function filterDept(dept) {
+  currentFilter = dept;
+  document.querySelectorAll('.dept-btn').forEach(b=>b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  render();
+}
+
+// ── Init ──
+render();
+</script>
+</body>
+</html>

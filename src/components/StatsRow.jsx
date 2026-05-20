@@ -9,14 +9,30 @@ export default function StatsRow({ steps, currentFilter }) {
   const dispStep = steps.find((s) => s.id === 's2');
   const dispDate = dispStep?.dispatchDate || '—';
 
+  let orderStatus = 'PENDING';
+  let statusColor = 'var(--orange, #f59e0b)';
+  if (total === 0) {
+    orderStatus = 'NO TASKS';
+    statusColor = '#888';
+  } else if (done === total) {
+    orderStatus = 'COMPLETED';
+    statusColor = 'var(--green, #10b981)';
+  } else if (blocked > 0) {
+    orderStatus = 'BLOCKED';
+    statusColor = 'var(--red, #ef4444)';
+  } else if (done > 0 || ip > 0) {
+    orderStatus = 'IN PROGRESS';
+    statusColor = 'var(--blue, #3b82f6)';
+  }
+
   return (
     <div className="stats-row">
       <div className="stat-card">
         <div className="stat-label">Order Status</div>
-        <div className="stat-value" style={{ color: 'var(--blue)', fontSize: 14, marginTop: 2 }}>
-          IN PROGRESS
+        <div className="stat-value" style={{ color: statusColor, fontSize: 14, marginTop: 2, fontWeight: 700 }}>
+          {orderStatus}
         </div>
-        <div className="stat-sub">ORD-2026-001</div>
+        <div className="stat-sub">Flow Progress</div>
       </div>
 
       <div className="stat-card">
